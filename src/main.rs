@@ -1,3 +1,8 @@
+mod logo;
+
+const VERSION: &str = "0.1.0";
+
+
 fn main() {
-    println!("Hello, world!");
+    logo::draw(&VERSION);
 }
