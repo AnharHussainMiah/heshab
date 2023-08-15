@@ -1,8 +1,9 @@
 mod authenticate;
+mod data;
 mod logo;
 mod models;
-mod data;
 
+use bcrypt::{hash, verify, DEFAULT_COST};
 use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
 use lazy_static::lazy_static;
 use models::CompanyInfo;
@@ -27,6 +28,11 @@ lazy_static! {
 #[tokio::main]
 async fn main() {
     logo::draw(&VERSION);
+
+    // if let Ok(hash) = hash("password", DEFAULT_COST) {
+    //     println!("hash => {}", hash);
+    // }
+
     if let Ok(pool) = PgPool::connect(&DBURL).await {
         let _ = sqlx::migrate!().run(&pool).await;
 
@@ -83,7 +89,7 @@ async fn handle_rejection(err: Rejection) -> Result<impl Reply, std::convert::In
     } else if let Some(e) = err.find::<InvalidToken>() {
         Ok(warp::reply::with_status(
             "Invalid Token",
-            StatusCode::BAD_REQUEST,
+            StatusCode::UNAUTHORIZED,
         ))
     } else {
         eprintln!("unhandled rejection: {:?}", err);
