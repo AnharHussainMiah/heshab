@@ -51,12 +51,3 @@ pub async fn handle(
     }
     Ok(with_status(json(&"Unauthorised"), StatusCode::UNAUTHORIZED))
 }
-
-pub async fn test_auth_handle(token: CompanyInfo) -> Result<impl warp::Reply, warp::Rejection> {
-    println!("==> got token {:?}", token);
-
-    Ok(with_status(
-        json(&"todo"),
-        StatusCode::INTERNAL_SERVER_ERROR,
-    ))
-}

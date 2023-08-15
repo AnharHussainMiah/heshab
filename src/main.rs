@@ -1,4 +1,5 @@
 mod authenticate;
+mod customer;
 mod data;
 mod logo;
 mod models;
@@ -48,14 +49,14 @@ async fn main() {
             .map(|token: String| token)
             .and_then(self::validate_token);
 
-        let post_test = warp::post()
-            .and(warp::path!("api" / "test"))
+        let post_search_customers = warp::post()
+            .and(warp::path!("api" / "search-customers"))
             .and(auth)
-            .and_then(authenticate::test_auth_handle);
+            .and_then(customer::search_customers_by_name);
 
         let routes = public
             .or(post_auth)
-            .or(post_test)
+            .or(post_search_customers)
             .recover(self::handle_rejection);
 
         println!("==> serving application on port 0.0.0.0:8080 use CTL+C to stop..");
