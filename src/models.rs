@@ -5,6 +5,11 @@ pub struct Company {
     password: String
 }
 
+pub struct CompanyInfo {
+    id: i32,
+    name: String
+}
+
 pub struct Customer {
     id: i32,
     company_id: i32,

@@ -7,7 +7,12 @@ use sqlx::PgPool;
 use std::env;
 use std::process;
 use uuid::Uuid;
+use warp::http::StatusCode;
+use warp::reject::Reject;
+use warp::reply::{json, with_status};
 use warp::Filter;
+use warp::Rejection;
+use warp::Reply;
 
 const VERSION: &str = "0.1.0";
 
@@ -29,13 +34,54 @@ async fn main() {
             .and(warp::any().map(move || pool.clone()))
             .and_then(authenticate::handle);
 
-        let routes = public.or(post_auth);
+        let auth = warp::header("authorization")
+            .map(|token: String| token)
+            .and_then(self::validate_token);
+
+        let post_test = warp::post()
+            .and(warp::path!("api" / "test"))
+            .and(auth)
+            .and_then(authenticate::test_auth_handle);
+
+        let routes = public
+            .or(post_auth)
+            .or(post_test)
+            .recover(self::handle_rejection);
 
         println!("==> serving application on port 0.0.0.0:8080 use CTL+C to stop..");
         warp::serve(routes).run(([0, 0, 0, 0], 8080)).await;
     } else {
         println!("WARNING: unable to establish a database connection, exiting...");
         process::exit(1);
+    }
+}
+
+#[derive(Debug)]
+struct InvalidToken;
+impl Reject for InvalidToken {}
+
+async fn validate_token(token: String) -> Result<String, Rejection> {
+    if token == "foo" {
+        Ok(token)
+    } else {
+        Err(warp::reject::custom(InvalidToken))
+    }
+}
+
+async fn handle_rejection(err: Rejection) -> Result<impl Reply, std::convert::Infallible> {
+    if err.is_not_found() {
+        Ok(warp::reply::with_status("NOT_FOUND", StatusCode::NOT_FOUND))
+    } else if let Some(e) = err.find::<InvalidToken>() {
+        Ok(warp::reply::with_status(
+            "Invalid Token",
+            StatusCode::BAD_REQUEST,
+        ))
+    } else {
+        eprintln!("unhandled rejection: {:?}", err);
+        Ok(warp::reply::with_status(
+            "INTERNAL_SERVER_ERROR",
+            StatusCode::INTERNAL_SERVER_ERROR,
+        ))
     }
 }
 

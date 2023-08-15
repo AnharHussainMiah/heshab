@@ -14,3 +14,4 @@ serde_json = "1.0.96"
 tokio = { version = "1", features = ["full"] }
 validator = { version = "0.16", features = ["derive"] }
 sqlx = { version = "0.7", features = [ "postgres", "runtime-tokio", "tls-rustls", "migrate" ] }
+jsonwebtoken = "8.3.0"

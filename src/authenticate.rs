@@ -18,3 +18,12 @@ pub async fn handle(
         StatusCode::INTERNAL_SERVER_ERROR,
     ))
 }
+
+pub async fn test_auth_handle(token: String) -> Result<impl warp::Reply, warp::Rejection> {
+    println!("==> got token {}", token);
+
+    Ok(with_status(
+        json(&"todo"),
+        StatusCode::INTERNAL_SERVER_ERROR,
+    ))
+}
