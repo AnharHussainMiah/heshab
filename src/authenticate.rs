@@ -1,8 +1,11 @@
+
+use crate::data;
 use crate::CompanyInfo;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use warp::http::StatusCode;
 use warp::reply::{json, with_status};
+
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct AuthenticatePayload {
@@ -14,6 +17,13 @@ pub async fn handle(
     payload: AuthenticatePayload,
     pool: PgPool,
 ) -> Result<impl warp::Reply, warp::Rejection> {
+    if let Ok(company) = data::get_company_by_email(&pool, &payload.email).await {
+        println!("==> got back -> {:?}", company);
+
+        
+    }
+
+
     Ok(with_status(
         json(&"tood"),
         StatusCode::INTERNAL_SERVER_ERROR,

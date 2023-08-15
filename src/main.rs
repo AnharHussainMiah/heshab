@@ -1,6 +1,7 @@
 mod authenticate;
 mod logo;
 mod models;
+mod data;
 
 use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
 use lazy_static::lazy_static;
