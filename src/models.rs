@@ -1,13 +1,16 @@
+use serde::{Deserialize, Serialize};
+
 pub struct Company {
     id: i32,
     name: String,
     email: String,
-    password: String
+    password: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CompanyInfo {
     id: i32,
-    name: String
+    name: String,
 }
 
 pub struct Customer {
@@ -15,19 +18,19 @@ pub struct Customer {
     company_id: i32,
     name: String,
     phone: String,
-    address: String
+    address: String,
 }
 
 pub struct CustomerInfo {
     company_id: i32,
     name: String,
     phone: String,
-    address: String
+    address: String,
 }
 
-pub struct Transactions {
-    id: i32,
-    customer_id: i32,
-    amount: i32,
-    date_added: DateTime<Utc>
-}
+// pub struct Transactions {
+//     id: i32,
+//     customer_id: i32,
+//     amount: i32,
+//     date_added: DateTime<Utc>
+// }

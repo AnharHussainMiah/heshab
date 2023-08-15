@@ -1,3 +1,4 @@
+use crate::CompanyInfo;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use warp::http::StatusCode;
@@ -19,8 +20,8 @@ pub async fn handle(
     ))
 }
 
-pub async fn test_auth_handle(token: String) -> Result<impl warp::Reply, warp::Rejection> {
-    println!("==> got token {}", token);
+pub async fn test_auth_handle(token: CompanyInfo) -> Result<impl warp::Reply, warp::Rejection> {
+    println!("==> got token {:?}", token);
 
     Ok(with_status(
         json(&"todo"),

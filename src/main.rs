@@ -1,7 +1,10 @@
 mod authenticate;
 mod logo;
+mod models;
 
+use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
 use lazy_static::lazy_static;
+use models::CompanyInfo;
 use serde::de::DeserializeOwned;
 use sqlx::PgPool;
 use std::env;
@@ -9,7 +12,6 @@ use std::process;
 use uuid::Uuid;
 use warp::http::StatusCode;
 use warp::reject::Reject;
-use warp::reply::{json, with_status};
 use warp::Filter;
 use warp::Rejection;
 use warp::Reply;
@@ -18,6 +20,7 @@ const VERSION: &str = "0.1.0";
 
 lazy_static! {
     static ref DBURL: String = self::load_key("DATABASE_URL");
+    static ref JWT_KEY: String = self::load_key("JWT_KEY");
 }
 
 #[tokio::main]
@@ -60,11 +63,16 @@ async fn main() {
 struct InvalidToken;
 impl Reject for InvalidToken {}
 
-async fn validate_token(token: String) -> Result<String, Rejection> {
-    if token == "foo" {
-        Ok(token)
-    } else {
-        Err(warp::reject::custom(InvalidToken))
+async fn validate_token(token: String) -> Result<CompanyInfo, Rejection> {
+    let token_message = decode::<CompanyInfo>(
+        &token,
+        &DecodingKey::from_secret(JWT_KEY.as_ref()),
+        &Validation::new(Algorithm::HS256),
+    );
+
+    match token_message {
+        Ok(data) => Ok(data.claims),
+        Err(_) => Err(warp::reject::custom(InvalidToken)),
     }
 }
 
