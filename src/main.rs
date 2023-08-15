@@ -39,10 +39,13 @@ async fn main() {
 
         let public = warp::get().and(warp::fs::dir("public"));
 
+        let p1 = pool.clone();
+        let p2 = pool.clone();
+
         let post_auth = warp::post()
             .and(warp::path!("api" / "auth"))
             .and(self::extract_json_of::<authenticate::AuthenticatePayload>())
-            .and(warp::any().map(move || pool.clone()))
+            .and(warp::any().map(move || p1.clone()))
             .and_then(authenticate::handle);
 
         let auth = warp::header("authorization")
@@ -52,6 +55,8 @@ async fn main() {
         let post_search_customers = warp::post()
             .and(warp::path!("api" / "search-customers"))
             .and(auth)
+            .and(self::extract_json_of::<customer::SingleStringPayload>())
+            .and(warp::any().map(move || p2.clone()))
             .and_then(customer::search_customers_by_name);
 
         let routes = public

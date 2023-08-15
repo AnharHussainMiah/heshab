@@ -29,6 +29,13 @@ pub struct CustomerInfo {
     address: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ListCustomerInfo {
+    pub id: i32,
+    pub name: String
+}
+
+
 // pub struct Transactions {
 //     id: i32,
 //     customer_id: i32,
