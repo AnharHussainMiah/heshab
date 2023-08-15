@@ -22,6 +22,7 @@ pub struct CustomerInfo {
 
 pub struct Transactions {
     id: i32,
+    customer_id: i32,
     amount: i32,
-    timestamp: DateTime<Utc>
+    date_added: DateTime<Utc>
 }
