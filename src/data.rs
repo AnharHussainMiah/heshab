@@ -3,6 +3,7 @@ use crate::models::Customer;
 use crate::models::Transactions;
 use crate::models::CustomerInfo;
 use crate::models::ListCustomerInfo;
+use crate::customer::CustomerPayload;
 use sqlx::PgPool;
 use uuid::Uuid;
 use chrono::NaiveDateTime;
@@ -94,24 +95,85 @@ pub async fn add_customer_transaction(
     pool: &PgPool,
     customer_id: &i32,
     company_id: &i32,
-    transaction: &i32,
+    amount: &i32,
 ) -> Result<(), sqlx::Error> {
+    let _ = sqlx::query!(
+        r#"
+        insert into customer_transactions (customer_id, company_id, amount, date_added)
+                                   values ($1, $2, $3, now());
+        "#,
+        customer_id,
+        company_id,
+        amount
+    )
+    .fetch_one(pool)
+    .await?;
     Ok(())
 }
 
 pub async fn delete_customer_transaction(
     pool: &PgPool,
-    customer_id: &i32,
     company_id: &i32,
     transaction_id: &i32,
 ) -> Result<(), sqlx::Error> {
+    let _ = sqlx::query!(
+        r#"
+        delete from customer_transactions where company_id = $1 and id = $2;
+        "#,
+        company_id,
+        transaction_id
+    )
+    .fetch_one(pool)
+    .await?;
     Ok(())
 }
 
-pub async fn add_new_customer(pool: &PgPool, customer: &CustomerInfo) -> Result<(), sqlx::Error> {
+pub async fn add_new_customer(
+    pool: &PgPool, 
+    company_id: &i32,
+    customer: &CustomerPayload
+) -> Result<(), sqlx::Error> {
+    let _ = sqlx::query!(
+        r#"
+        insert into customer (company_id ,name ,phone ,address)
+                    values   ($1         ,$2   ,$3    ,$4     );
+        "#,
+        company_id,
+        customer.name,
+        customer.phone,
+        customer.address
+    )
+    .fetch_one(pool)
+    .await?;
+
     Ok(())
 }
 
-pub async fn update_customer(pool: &PgPool, customer: &CustomerInfo) -> Result<(), sqlx::Error> {
+pub async fn update_customer(
+    pool: &PgPool,
+    company_id: &i32,
+    customer: &CustomerPayload
+) -> Result<(), sqlx::Error> {
+    let _ = sqlx::query!(
+        r#"
+        update customer
+            set
+                name = $3,
+                phone = $4,
+                address = $5
+            where
+                company_id = $1
+                and
+                id = $2
+        "#,
+        company_id,
+        customer.customer_id,
+        customer.name,
+        customer.phone,
+        customer.address
+    )
+    .fetch_one(pool)
+    .await?;
+
     Ok(())
 }

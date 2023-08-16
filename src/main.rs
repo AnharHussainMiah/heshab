@@ -43,6 +43,10 @@ async fn main() {
         let p2 = pool.clone();
         let p3 = pool.clone();
         let p4 = pool.clone();
+        let p5 = pool.clone();
+        let p6 = pool.clone();
+        let p7 = pool.clone();
+        let p8 = pool.clone();
 
         let post_auth = warp::post()
             .and(warp::path!("api" / "auth"))
@@ -73,11 +77,42 @@ async fn main() {
             .and(warp::any().map(move || p4.clone()))
             .and_then(customer::get_customer_transactions);
 
+        let post_add_transaction = warp::post()
+            .and(warp::path!("api" / "add-customer-transaction"))
+            .and(auth)
+            .and(self::extract_json_of::<customer::TransactionPayload>())
+            .and(warp::any().map(move || p5.clone()))
+            .and_then(customer::add_customer_transaction);
+        
+        let post_delete_transaction = warp::post()
+            .and(warp::path!("api" / "delete-customer-transaction" / i32).map(|transaction_id: i32| transaction_id))
+            .and(auth)
+            .and(warp::any().map(move || p6.clone()))
+            .and_then(customer::delete_customer_transaction);
+
+        let post_add_new_customer = warp::post()
+            .and(warp::path!("api" / "add-new-customer"))
+            .and(auth)
+            .and(self::extract_json_of::<customer::CustomerPayload>())
+            .and(warp::any().map(move || p7.clone()))
+            .and_then(customer::add_new_customer);
+        
+        let post_update_customer = warp::post()
+            .and(warp::path!("api" / "update-new-customer"))
+            .and(auth)
+            .and(self::extract_json_of::<customer::CustomerPayload>())
+            .and(warp::any().map(move || p8.clone()))
+            .and_then(customer::update_new_customer);
+
         let routes = public
             .or(post_auth)
             .or(post_search_customers)
             .or(post_get_customer_detail)
             .or(post_get_customer_transactions)
+            .or(post_add_transaction)
+            .or(post_delete_transaction)
+            .or(post_add_new_customer)
+            .or(post_update_customer)
             .recover(self::handle_rejection);
 
         println!("==> serving application on port 0.0.0.0:8080 use CTL+C to stop..");
