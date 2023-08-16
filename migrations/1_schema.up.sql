@@ -15,6 +15,7 @@ create table if not exists customer (
 
 create table if not exists customer_transactions (
     id serial primary key,
+    company_id int,
     customer_id int ,
     amount int,
     date_added timestamp

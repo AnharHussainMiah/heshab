@@ -41,6 +41,8 @@ async fn main() {
 
         let p1 = pool.clone();
         let p2 = pool.clone();
+        let p3 = pool.clone();
+        let p4 = pool.clone();
 
         let post_auth = warp::post()
             .and(warp::path!("api" / "auth"))
@@ -53,15 +55,29 @@ async fn main() {
             .and_then(self::validate_token);
 
         let post_search_customers = warp::post()
-            .and(warp::path!("api" / "search-customers"))
+            .and(warp::path!("api" / "search-customers" / String).map(|query: String| query))
             .and(auth)
-            .and(self::extract_json_of::<customer::SingleStringPayload>())
             .and(warp::any().map(move || p2.clone()))
             .and_then(customer::search_customers_by_name);
+
+
+        let post_get_customer_detail = warp::post()
+            .and(warp::path!("api" / "get-customer-detail" / i32).map(|customer_id: i32| customer_id))
+            .and(auth)
+            .and(warp::any().map(move || p3.clone()))
+            .and_then(customer::get_customer_detail);
+        
+        let post_get_customer_transactions = warp::post()
+            .and(warp::path!("api" / "get-customer-transactions" / i32).map(|customer_id: i32| customer_id))
+            .and(auth)
+            .and(warp::any().map(move || p4.clone()))
+            .and_then(customer::get_customer_transactions);
 
         let routes = public
             .or(post_auth)
             .or(post_search_customers)
+            .or(post_get_customer_detail)
+            .or(post_get_customer_transactions)
             .recover(self::handle_rejection);
 
         println!("==> serving application on port 0.0.0.0:8080 use CTL+C to stop..");

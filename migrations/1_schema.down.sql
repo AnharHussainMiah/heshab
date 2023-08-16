@@ -1,3 +1,3 @@
 drop table company;
-drop table customers;
+drop table customer;
 drop table customer_transactions;

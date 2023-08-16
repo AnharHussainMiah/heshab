@@ -1,8 +1,13 @@
 use crate::models::Company;
+use crate::models::Customer;
+use crate::models::Transactions;
 use crate::models::CustomerInfo;
 use crate::models::ListCustomerInfo;
 use sqlx::PgPool;
 use uuid::Uuid;
+use chrono::NaiveDateTime;
+use chrono::Utc;
+use chrono::DateTime;
 
 pub async fn get_company_by_email(pool: &PgPool, email: &str) -> Result<Company, sqlx::Error> {
     let rec = sqlx::query!(
@@ -38,23 +43,54 @@ pub async fn search_customers(pool: &PgPool, name: &str, company_id: &i32) -> Re
     }).collect::<Vec<ListCustomerInfo>>())
 }
 
-async fn get_customer_detail(
+pub async fn get_customer_detail(
     pool: &PgPool,
     customer_id: &i32,
     company_id: &i32,
-) -> Result<(), sqlx::Error> {
-    Ok(())
+) -> Result<Customer, sqlx::Error> {
+    let rec = sqlx::query!(
+        r#"
+        select id, company_id, name, phone, address from customer where company_id = $1 and id = $2;
+        "#,
+        company_id,
+        customer_id
+    )
+    .fetch_one(pool)
+    .await?;
+    Ok(Customer {
+        id: rec.id,
+        company_id: rec.company_id.unwrap_or(0),
+        name: rec.name.unwrap_or("".to_string()),
+        phone: rec.phone.unwrap_or("".to_string()),
+        address: rec.address.unwrap_or("".to_string())
+    })
 }
 
-async fn get_customer_transactions(
+pub async fn get_customer_transactions(
     pool: &PgPool,
     customer_id: &i32,
     company_id: &i32,
-) -> Result<(), sqlx::Error> {
-    Ok(())
+) -> Result<Vec<Transactions>, sqlx::Error> {
+    let rec = sqlx::query!(
+        r#"
+        select id, amount, date_added from customer_transactions where company_id = $1 and customer_id = $2;
+        "#,
+        company_id,
+        customer_id)
+        .fetch_all(pool)
+        .await?;
+    
+    Ok(rec.into_iter().map(|row| Transactions {
+        id: row.id,
+        amount: row.amount.unwrap_or(0),
+        date_added: DateTime::from_utc(
+            row.date_added.unwrap_or(Utc::now().naive_utc()),
+            Utc
+        )
+    }).collect::<Vec<Transactions>>())
 }
 
-async fn add_customer_transaction(
+pub async fn add_customer_transaction(
     pool: &PgPool,
     customer_id: &i32,
     company_id: &i32,
@@ -63,7 +99,7 @@ async fn add_customer_transaction(
     Ok(())
 }
 
-async fn delete_customer_transaction(
+pub async fn delete_customer_transaction(
     pool: &PgPool,
     customer_id: &i32,
     company_id: &i32,
@@ -72,10 +108,10 @@ async fn delete_customer_transaction(
     Ok(())
 }
 
-async fn add_new_customer(pool: &PgPool, customer: &CustomerInfo) -> Result<(), sqlx::Error> {
+pub async fn add_new_customer(pool: &PgPool, customer: &CustomerInfo) -> Result<(), sqlx::Error> {
     Ok(())
 }
 
-async fn update_customer(pool: &PgPool, customer: &CustomerInfo) -> Result<(), sqlx::Error> {
+pub async fn update_customer(pool: &PgPool, customer: &CustomerInfo) -> Result<(), sqlx::Error> {
     Ok(())
 }

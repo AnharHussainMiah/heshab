@@ -1,4 +1,6 @@
 use serde::{Deserialize, Serialize};
+use chrono::DateTime;
+use chrono::Utc;
 
 #[derive(Debug, Serialize)]
 pub struct Company {
@@ -14,12 +16,13 @@ pub struct CompanyInfo {
     pub name: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Customer {
-    id: i32,
-    company_id: i32,
-    name: String,
-    phone: String,
-    address: String,
+    pub id: i32,
+    pub company_id: i32,
+    pub name: String,
+    pub phone: String,
+    pub address: String,
 }
 
 pub struct CustomerInfo {
@@ -35,10 +38,9 @@ pub struct ListCustomerInfo {
     pub name: String
 }
 
-
-// pub struct Transactions {
-//     id: i32,
-//     customer_id: i32,
-//     amount: i32,
-//     date_added: DateTime<Utc>
-// }
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Transactions {
+    pub id: i32,
+    pub amount: i32,
+    pub date_added: DateTime<Utc>
+}
