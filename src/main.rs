@@ -18,6 +18,7 @@ use warp::reject::Reject;
 use warp::Filter;
 use warp::Rejection;
 use warp::Reply;
+use warp::reply::{ json, with_status };
 
 const VERSION: &str = "0.1.0";
 
@@ -103,6 +104,11 @@ async fn main() {
             .and(self::extract_json_of::<customer::CustomerPayload>())
             .and(warp::any().map(move || p8.clone()))
             .and_then(customer::update_new_customer);
+        
+        let post_confirm_is_logged_in = warp::post()
+            .and(warp::path!("api" / "confirm-is-logged-in"))
+            .and(auth)
+            .and_then(self::confirm_logged_in);
 
         let routes = public
             .or(post_auth)
@@ -113,6 +119,7 @@ async fn main() {
             .or(post_delete_transaction)
             .or(post_add_new_customer)
             .or(post_update_customer)
+            .or(post_confirm_is_logged_in)
             .recover(self::handle_rejection);
 
         println!("==> serving application on port 0.0.0.0:8080 use CTL+C to stop..");
@@ -167,4 +174,13 @@ fn load_key(k: &str) -> String {
 pub fn extract_json_of<T: DeserializeOwned + Send>(
 ) -> impl Filter<Extract = (T,), Error = warp::Rejection> + Clone {
     warp::body::content_length_limit(1024 * 16).and(warp::body::json())
+}
+
+pub async fn confirm_logged_in(
+    company: CompanyInfo,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    Ok(with_status(
+        json(&"success"),
+        StatusCode::OK,
+    ))
 }
