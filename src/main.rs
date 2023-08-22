@@ -99,7 +99,7 @@ async fn main() {
             .and_then(customer::add_new_customer);
         
         let post_update_customer = warp::post()
-            .and(warp::path!("api" / "update-new-customer"))
+            .and(warp::path!("api" / "update-customer"))
             .and(auth)
             .and(self::extract_json_of::<customer::CustomerPayload>())
             .and(warp::any().map(move || p8.clone()))
@@ -138,7 +138,7 @@ async fn validate_token(token: String) -> Result<CompanyInfo, Rejection> {
     let token_message = decode::<CompanyInfo>(
         &token,
         &DecodingKey::from_secret(JWT_KEY.as_ref()),
-        &Validation::new(Algorithm::HS256),
+        &Validation::default(),
     );
 
     match token_message {

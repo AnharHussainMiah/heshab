@@ -25,6 +25,7 @@ pub async fn search_customers_by_name(
     company: CompanyInfo,
     pool: PgPool 
 ) -> Result<impl warp::Reply, warp::Rejection> {
+    println!("==> searching customer by name [{}..]", query);
     
     if let Ok(customers) = crate::data::search_customers(&pool, &query, &company.id).await {
         return Ok(with_status(
@@ -44,7 +45,7 @@ pub async fn get_customer_detail(
     company: CompanyInfo,
     pool: PgPool
 ) -> Result<impl warp::Reply, warp::Rejection> {
-
+    println!("==> getting customer detail for ID: {}", customer_id);
     if let Ok(customer) = crate::data::get_customer_detail(&pool, &customer_id, &company.id).await {
         return Ok(with_status(
             json(&customer),
@@ -63,7 +64,7 @@ pub async fn get_customer_transactions(
     company: CompanyInfo,
     pool: PgPool
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    
+    println!("==> getting customer transactions for customer ID: {}", customer_id);
     if let Ok(transactions) = crate::data::get_customer_transactions(&pool, &customer_id, &company.id).await {
         return Ok(with_status(
                 json(&transactions),
@@ -82,18 +83,21 @@ pub async fn add_customer_transaction(
     payload: TransactionPayload,
     pool: PgPool
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    
-    if let Ok(_) = crate::data::add_customer_transaction(&pool, &payload.customer_id, &company.id, &payload.amount).await {
-        return Ok(with_status(
-            json(&"success".to_string()),
-            StatusCode::OK
-        ));
-    }
-
-    Ok(with_status(
-        json(&"Unable to add customer transaction"),
-        StatusCode::INTERNAL_SERVER_ERROR,
-    ))
+    println!("==> adding new customer transaction for customer ID: {}", payload.customer_id);
+    match crate::data::add_customer_transaction(&pool, &payload.customer_id, &company.id, &payload.amount).await {
+        Ok(_) =>  {
+            return Ok(with_status(
+                json(&"success".to_string()),
+                StatusCode::OK
+            ));
+        },
+        Err(e) => {
+            Ok(with_status(
+                json(&format!("Unable to add customer transaction: {}", e)),
+                StatusCode::INTERNAL_SERVER_ERROR,
+            ))
+        }
+    }    
 }
 
 pub async fn delete_customer_transaction(
@@ -101,7 +105,7 @@ pub async fn delete_customer_transaction(
     company: CompanyInfo,
     pool: PgPool
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    
+    println!("==> deleting customer transaction with tx ID: {}", transaction_id);
     if let Ok(_) = crate::data::delete_customer_transaction(&pool, &company.id, &transaction_id).await {
         return Ok(with_status(
             json(&"success".to_string()),
@@ -120,7 +124,7 @@ pub async fn add_new_customer(
     customer: CustomerPayload,
     pool: PgPool
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    
+    println!("==> adding new customer [{}...]", customer.name);
     if let Some(error) = self::validate_cusomter_error(&customer) {
         return Ok(with_status(
             json(&error),
@@ -146,7 +150,7 @@ pub async fn update_new_customer(
     customer: CustomerPayload,
     pool: PgPool
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    
+    println!("==> attempting to update customer ID [{}]", customer.customer_id);
     if let Some(error) = self::validate_cusomter_error(&customer) {
         return Ok(with_status(
             json(&error),
@@ -154,7 +158,7 @@ pub async fn update_new_customer(
         ));
     }
 
-    if let Ok(_) = crate::data::add_new_customer(&pool, &company.id, &customer).await {
+    if let Ok(_) = crate::data::update_customer(&pool, &company.id, &customer).await {
         return Ok(with_status(
             json(&"success".to_string()),
             StatusCode::OK

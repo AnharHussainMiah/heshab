@@ -39,6 +39,7 @@ pub async fn handle(
                 &CompanyInfo {
                     id: company.id,
                     name: company.name,
+                    exp: 10000000000
                 },
                 &EncodingKey::from_secret(JWT_KEY.as_ref()),
             ) {

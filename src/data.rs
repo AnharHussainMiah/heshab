@@ -31,7 +31,7 @@ pub async fn get_company_by_email(pool: &PgPool, email: &str) -> Result<Company,
 pub async fn search_customers(pool: &PgPool, name: &str, company_id: &i32) -> Result<Vec<ListCustomerInfo>, sqlx::Error> {
     let rec = sqlx::query!(
         r#"
-        select id, name from customer where company_id = $1 and lower(name) ~ $2;
+        select id, name, phone from customer where company_id = $1 and lower(name) ~ $2;
         "#,
         company_id,
         name)
@@ -40,7 +40,8 @@ pub async fn search_customers(pool: &PgPool, name: &str, company_id: &i32) -> Re
     
     Ok(rec.into_iter().map(|row| ListCustomerInfo {
         id: row.id,
-        name: row.name.unwrap_or("".to_string())
+        name: row.name.unwrap_or("".to_string()),
+        phone: row.phone.unwrap_or("".to_string())
     }).collect::<Vec<ListCustomerInfo>>())
 }
 
@@ -106,7 +107,7 @@ pub async fn add_customer_transaction(
         company_id,
         amount
     )
-    .fetch_one(pool)
+    .execute(pool)
     .await?;
     Ok(())
 }
@@ -123,7 +124,7 @@ pub async fn delete_customer_transaction(
         company_id,
         transaction_id
     )
-    .fetch_one(pool)
+    .execute(pool)
     .await?;
     Ok(())
 }
@@ -143,7 +144,7 @@ pub async fn add_new_customer(
         customer.phone,
         customer.address
     )
-    .fetch_one(pool)
+    .execute(pool)
     .await?;
 
     Ok(())
@@ -172,7 +173,7 @@ pub async fn update_customer(
         customer.phone,
         customer.address
     )
-    .fetch_one(pool)
+    .execute(pool)
     .await?;
 
     Ok(())

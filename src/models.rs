@@ -14,6 +14,7 @@ pub struct Company {
 pub struct CompanyInfo {
     pub id: i32,
     pub name: String,
+    pub exp: usize,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -25,6 +26,7 @@ pub struct Customer {
     pub address: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CustomerInfo {
     company_id: i32,
     name: String,
@@ -35,7 +37,8 @@ pub struct CustomerInfo {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ListCustomerInfo {
     pub id: i32,
-    pub name: String
+    pub name: String,
+    pub phone: String
 }
 
 #[derive(Debug, Serialize, Deserialize)]
