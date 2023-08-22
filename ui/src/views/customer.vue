@@ -45,6 +45,7 @@ export default {
         customer: {}
     }),
     mounted () {
+        document.title = 'Baqi | Customer'
         Api.isLoggedIn();
         this.customerId = parseInt(this.$route.params.customerId);
         if(this.customerId > 0) {

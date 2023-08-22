@@ -56,6 +56,7 @@ export default {
         noMatch: false
     }),
     mounted () {
+        document.title = 'Baqi | Search'
         Api.isLoggedIn();
     },
     methods: {

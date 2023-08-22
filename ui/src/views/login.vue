@@ -48,6 +48,7 @@ export default {
         isLoading: false
     }),
     mounted () {
+        document.title = 'Baqi | Sign In'
         Api.isLoggedIn(true);
     },
     methods: {

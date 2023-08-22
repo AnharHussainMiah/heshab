@@ -82,6 +82,7 @@ export default {
         Navigation: Nav
     },
     mounted () {
+        document.title = 'Baqi | Transactions'
         this.modal = document.getElementById("paymentModal");
         this.customerId = parseInt(this.$route.params.customerId);
         Api.isLoggedIn();
