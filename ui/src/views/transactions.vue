@@ -4,7 +4,7 @@
         <div class="row">
             <div class="col-md-6 offset-md-3">
                 <div class="row g-4">
-                    <h1>Transactions: Total (£{{  total }})</h1>
+                    <h1>Transactions: Total (£{{  (total/100).toFixed(2) }})</h1>
                 </div>
                 <div class="card">
                     <div class="card-header">
@@ -21,10 +21,7 @@
                 </div>
                 <div class="row g-4 mt-2 mb-4">
                     <div class="col-auto">
-                        <button class="btn btn-dark" @click="btnShowPaymentModal"><span class="bi-bag-plus-fill" /> Add Payment</button>
-                    </div>
-                    <div class="col-auto">
-                        <button class="btn btn-dark" @click="btnShowPaymentModal"><span class="bi-bag-dash-fill" /> Add Credit</button>
+                        <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#transactionModal"><span class="bi-cash-coin" /> Add Payment</button>
                     </div>
                 </div>
                 <div class="row g-4">
@@ -38,8 +35,8 @@
                         </thead>
                         <tbody>
                             <tr v-for="transaction in transactions" key="transaction.id">
-                                <td>£{{ transaction.amount  }}</td>
-                                <td>{{ transaction.date_added  }}</td>
+                                <td>£{{ (transaction.amount/100).toFixed(2)  }}</td>
+                                <td>{{ formatDate(transaction.date_added)  }}</td>
                                 <td><button class="btn btn-light" @click="btnDeleteTransaction(transaction.id)"><span class="bi-trash-fill" /></button></td>
                             </tr>
                         </tbody>
@@ -47,17 +44,26 @@
                 </div>
 
             
-                    
-
-                    <dialog id="paymentModal">
-                        <h2>Add Transaction</h2>
-                        <input type="number" class="form-control" v-model="amount">
-                        <button class="btn btn-dark" @click="btnCancel">cancel</button>
-                        <button class="btn btn-success" @click="btnSubmitTransaction">submit</button>
-                    </dialog>
-
-                    
-
+                    <!-- Modal -->
+                    <div class="modal fade" id="transactionModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Add Transaction</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <input type="text" class="form-control" v-model="amount" maxlength="10"  >
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><span class="bi-x-circle" /> Cancel</button>
+                                <button class="btn btn-success" @click="btnSubmitTransaction(false)" data-bs-dismiss="modal">Paid</button>
+                                <button class="btn btn-warning" @click="btnSubmitTransaction(true)" data-bs-dismiss="modal">Baqi</button>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Modal -->
             </div>
         </div>
     </div>
@@ -73,7 +79,7 @@ export default {
     data: () => ({
         transactions: [],
         showPaymentModal: false,
-        amount: 0.0,
+        amount: "",
         modal: null,
         customer: {},
         customerId: -1
@@ -121,10 +127,12 @@ export default {
         btnCancel () {
             this.modal.close();
         },
-        btnSubmitTransaction () {
+        btnSubmitTransaction (isBaqi) {
+            const total = parseInt(this.amount * 100);
+
             const payload = {
                 customer_id: parseInt(this.$route.params.customerId),
-                amount: this.amount
+                amount: (isBaqi===true)? -total: total
             };
 
             Api.addCustomerTransaction(payload)
@@ -148,6 +156,10 @@ export default {
                         console.log(JSON.stringify(response));
                     })
             }
+        },
+        formatDate (ds) {
+            const f = new Date(ds);
+            return f.toLocaleString();
         }
     }
 }

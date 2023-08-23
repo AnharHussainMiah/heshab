@@ -12,13 +12,13 @@
                             <div class="input-group-prepend">
                                 <span class="input-group-text"><span class="bi-envelope" /></span>
                             </div>
-                            <input type="text" placeholder="enter email" class="form-control" v-model="email" />
+                            <input type="text" placeholder="enter email" class="form-control" v-model="email" maxlength="100" />
                         </div>
                         <div class="input-group mb-2">
                             <div class="input-group-prepend">
                                 <span class="input-group-text"><span class="bi-key" /></span>
                             </div>
-                            <input type="password" placeholder="enter password" class="form-control" v-model="password" />
+                            <input type="password" placeholder="enter password" class="form-control" v-model="password" maxlength="50" />
                         </div>
                         <div class="col-12">
                             <button class="btn btn-dark float-end" @click="btnSubmit">
@@ -28,6 +28,11 @@
                                     <span class="sr-only">&nbsp; authenticating...</span>
                                 </span>
                             </button>
+                        </div>
+                        <div class="col-12 mt-3">
+                            <div class="alert alert-warning" role="alert" v-if="errorMessage !== ''">
+                                {{ errorMessage }}
+                            </div>
                         </div>
                     </div>                
                 </div>
@@ -45,7 +50,8 @@ export default {
     data: () => ({
         email: "",
         password: "",
-        isLoading: false
+        isLoading: false,
+        errorMessage: ""
     }),
     mounted () {
         document.title = 'Baqi | Sign In'
@@ -54,6 +60,7 @@ export default {
     methods: {
         btnSubmit () {
             this.isLoading = true;
+            this.errorMessage = "";
             Api.login({ email: this.email, password: this.password })
                 .then((data) => {
                     Api.saveAuthToken(data.data.token);
@@ -63,6 +70,9 @@ export default {
                 .catch(({ response }) => {
                     console.log(JSON.stringify(response.data));
                     this.isLoading = false;
+                    if(response.status === 401) {
+                        this.errorMessage = "email or password is not valid!"
+                    }
                 })
         }
     }

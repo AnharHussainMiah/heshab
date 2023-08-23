@@ -178,17 +178,25 @@ fn validate_cusomter_error(customer: &CustomerPayload) -> Option<String> {
         phone is all numbers and only 11 digits
         address is max 200 characters
     */
+
+    if customer.name == "" {
+        return Some("Sorry the customer's name can not be empty".to_string());
+    }
+
+    if customer.phone == "" {
+        return Some("Sorry the customer's phone can not be empty".to_string());
+    }
     
-    if customer.name.len() > 100 {
-        return Some("Sorry the customer's name can not be longer then 100 characters".to_string());
+    if customer.name.len() > 50 {
+        return Some("Sorry the customer's name can not be longer then 50 characters".to_string());
     }
 
     if customer.phone.len() > 11 {
-        return Some("Sorry the customer's phone only have 11 digits".to_string());
+        return Some("Sorry the customer's phone can only have 11 digits".to_string());
     }
 
-    if customer.address.len() > 200 {
-        return Some("Sorry the customer's addres can not be longer then 200 characters".to_string());
+    if customer.address.len() > 100 {
+        return Some("Sorry the customer's addres can not be longer then 100 characters".to_string());
     }
 
     None

@@ -1,9 +1,10 @@
-extern crate bcrypt;
-
+use pbkdf2::{
+    password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
+    Pbkdf2,
+};
 use crate::data;
 use crate::CompanyInfo;
 use crate::JWT_KEY;
-use bcrypt::{hash, verify, DEFAULT_COST};
 use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
@@ -26,14 +27,11 @@ pub async fn handle(
     pool: PgPool,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     if let Ok(company) = data::get_company_by_email(&pool, &payload.email).await {
-        // println!("==> got back -> {:?}", company);
         // compare hashes and if ok then sign the token and send back
-        let hashed = match hash(payload.password, DEFAULT_COST) {
-            Ok(hash) => hash,
-            Err(_) => "".to_string(),
-        };
+        let encoded_copy = company.password.clone();
+        let hashed = PasswordHash::new(&encoded_copy);
 
-        if let Ok(is_valid) = verify(company.password, &hashed) {
+        if Pbkdf2.verify_password(&payload.password.into_bytes(), &hashed.unwrap()).is_ok() {
             if let Ok(token) = encode(
                 &Header::default(),
                 &CompanyInfo {
@@ -49,6 +47,7 @@ pub async fn handle(
                 ));
             }
         }
+        
     }
     Ok(with_status(json(&"Unauthorised"), StatusCode::UNAUTHORIZED))
 }

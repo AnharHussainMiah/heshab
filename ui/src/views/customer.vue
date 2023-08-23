@@ -11,23 +11,30 @@
                     <div class="input-group-prepend">
                         <span class="input-group-text"><span class="bi-person-circle" /></span>
                     </div>
-                    <input class="form-control" placeholder="enter name" type="text" v-model="customer.name" />
+                    <input class="form-control" placeholder="enter name" type="text" v-model="customer.name" maxlength="50" />
                 </div>
                 <div class="input-group mb-2">
                     <div class="input-group-prepend">
                         <span class="input-group-text"><span class="bi-phone" /></span>
                     </div>
-                    <input class="form-control" placeholder="enter phone number" type="text" v-model="customer.phone" />
+                    <input class="form-control" placeholder="enter phone number" type="text" v-model="customer.phone" maxlength="11" />
                 </div>
                 <div class="input-group mb-2">
                     <div class="input-group-prepend">
                         <span class="input-group-text"><span class="bi-map" /></span>
                     </div>
-                    <input class="form-control" placeholder="enter address" type="text" v-model="customer.address" />
+                    <input class="form-control" placeholder="enter address" type="text" v-model="customer.address" maxlength="100" />
                 </div>
                 <div class="row g-4 mt-1">
                     <div class="col-12">
                         <button class="btn btn-dark float-end" @click="btnSave"><span class="bi-save-fill" /> Save</button>
+                    </div>
+                </div>
+                <div class="row g-4 mt-1">
+                    <div class="col-12">
+                        <div class="alert alert-warning" role="alert" v-if="errorMessage !== ''">
+                            <span class="bi-exclamation-diamond" /> {{ errorMessage }}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -42,7 +49,12 @@ import Nav from '../components/nav.vue'
 export default {
     data: () => ({
         customerId: -1,
-        customer: {}
+        customer: {
+            name: "",
+            phone: "",
+            address: ""
+        },
+        errorMessage: ""
     }),
     mounted () {
         document.title = 'Baqi | Customer'
@@ -70,6 +82,7 @@ export default {
             }
         },
         saveCustomer () {
+            this.errorMessage = "";
             const payload = {
                 customer_id: this.customerId,
                 name: this.customer.name,
@@ -81,11 +94,34 @@ export default {
                     alert("Customer Details saved!");
                 })
                 .catch(({ response }) => {
-                    alert(`Unable to save customer -> ${JSON.stringify(response)}`);
+                    if(response.status === 400) {
+                        this.errorMessage = response.data
+                    }
+                    if(response.status === 500) {
+                        this.errorMessage = "Sorry there was some error and we were not able to update the customer"
+                    }
                 })
         },
         createNewCustomer () {
-
+            this.errorMessage = "";
+            const payload = {
+                customer_id: this.customerId,
+                name: this.customer.name,
+                phone: this.customer.phone,
+                address: this.customer.address
+            };
+            Api.addNewCustomer(payload)
+                .then((data) => {
+                    alert("Customer Details saved!");
+                })
+                .catch(({ response }) => {
+                    if(response.status === 400) {
+                        this.errorMessage = response.data
+                    }
+                    if(response.status === 500) {
+                        this.errorMessage = "Sorry there was some error and we were not able to update the customer"
+                    }
+                })
         }
     },
     components: {

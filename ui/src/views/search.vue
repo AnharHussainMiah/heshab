@@ -8,7 +8,7 @@
                 </div>
                 <div class="row g-4">
                     <div class="input-group mb-2">
-                        <input type="text" @keydown="clearNoMatch" v-model="q" placeholder="search customer name" class="form-control" />    
+                        <input type="text" @keydown="clearNoMatch" v-model="q" placeholder="search customer name" class="form-control" maxlength="20" />
                     </div>
                 </div>
                 <div class="row g-4">

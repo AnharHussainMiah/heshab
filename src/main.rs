@@ -4,7 +4,6 @@ mod data;
 mod logo;
 mod models;
 
-use bcrypt::{hash, verify, DEFAULT_COST};
 use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
 use lazy_static::lazy_static;
 use models::CompanyInfo;
@@ -31,8 +30,14 @@ lazy_static! {
 async fn main() {
     logo::draw(&VERSION);
 
-    // if let Ok(hash) = hash("password", DEFAULT_COST) {
+    //let pass = "password".to_string();
+    // if let Ok(hash) = hash(pass.into_bytes(), DEFAULT_COST) {
     //     println!("hash => {}", hash);
+    // }
+
+    // let salt = SaltString::generate(&mut rand_core::OsRng);
+    // if let Ok(hash) = Pbkdf2.hash_password(pass.as_bytes(), &salt) {
+    //     println!("hash -> {}", hash);
     // }
 
     if let Ok(pool) = PgPool::connect(&DBURL).await {
