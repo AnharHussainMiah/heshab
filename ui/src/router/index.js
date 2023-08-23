@@ -4,6 +4,8 @@ import Login from '../views/login.vue'
 import Search from '../views/search.vue'
 import Customer from '../views/customer.vue'
 import Transactions from '../views/transactions.vue'
+import ForgotPassword from '../views/forgotpassword.vue'
+import NewPassword from '../views/newpassword.vue'
 
 
 const routes = [
@@ -26,6 +28,16 @@ const routes = [
         path: '/customer/:customerId',
         name: 'customer',
         component: Customer
+    },
+    {
+        path: '/forgot-password',
+        name: 'ForgotPassword',
+        component: ForgotPassword
+    },
+    {
+        path: '/new-password',
+        name: 'NewPassword',
+        component: NewPassword
     }
 ]
 

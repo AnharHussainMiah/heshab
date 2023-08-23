@@ -73,7 +73,22 @@ pub async fn update_new_password(
     payload: ResetPayload,
     pool: PgPool,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    if payload.password.len() > 10 {
+    
+    if payload.token.len() != 36 {
+        return Ok(with_status(
+            json(&"Token is invalid"),
+            StatusCode::BAD_REQUEST,
+        ));
+    }
+
+    if payload.email == "" {
+        return Ok(with_status(
+            json(&"Email can not be empty"),
+            StatusCode::BAD_REQUEST,
+        ));
+    }
+
+    if payload.password.len() < 10 {
         return Ok(with_status(
             json(&"Password can not be less then 10 characters"),
             StatusCode::BAD_REQUEST,
@@ -86,17 +101,15 @@ pub async fn update_new_password(
         if is_valid_token {
             let salt = SaltString::generate(&mut rand_core::OsRng);
             if let Ok(hash) = Pbkdf2.hash_password(payload.password.as_bytes(), &salt) {
-                if let Some(hashed) = hash.hash {
-                    let encoded = format!("{}", hashed);
-                    let _ = data::set_new_password(&pool, &payload.token, &encoded).await;
-                    return Ok(with_status(json(&"Success"), StatusCode::OK));
-                }
+                let encoded = format!("{}", hash);
+                let _ = data::set_new_password(&pool, &payload.token, &encoded).await;
+                return Ok(with_status(json(&"Success"), StatusCode::OK));
             }
         }
     }
 
     Ok(with_status(
-        json(&"Expire or invalid token"),
+        json(&"Either the email is invalid or the reset token has expired or is invalid"),
         StatusCode::BAD_REQUEST,
     ))
 }

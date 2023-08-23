@@ -19,6 +19,10 @@ export default {
         return { Authorization: `${authToken}`, "Content-Type": "application/json" };
     },
 
+    getJsonHeaders() {
+        return { "Content-Type": "application/json" };
+    },
+
     async searchCustomers(query) {
         const res = await http.post(`/api/search-customers/${encodeURI(query)}`, { }, { headers: this.getAuthorizationHeader()});
         return res
@@ -51,6 +55,16 @@ export default {
 
     async updateCustomer(payload) {
         const res = await http.post(`/api/update-customer/`, payload, { headers: this.getAuthorizationHeader()});
+        return res
+    },
+
+    async resetPasswordRequest(payload) {
+        const res = await http.post('/api/reset-request', payload, { headers: this.getJsonHeaders() });
+        return res
+    },
+
+    async updateNewPassword(payload) {
+        const res = await http.post('/api/update-new-password', payload, { headers: this.getJsonHeaders() });
         return res
     },
 
