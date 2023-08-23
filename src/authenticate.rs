@@ -1,11 +1,11 @@
-use pbkdf2::{
-    password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
-    Pbkdf2,
-};
 use crate::data;
 use crate::CompanyInfo;
 use crate::JWT_KEY;
 use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
+use pbkdf2::{
+    password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
+    Pbkdf2,
+};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use warp::http::StatusCode;
@@ -31,13 +31,16 @@ pub async fn handle(
         let encoded_copy = company.password.clone();
         let hashed = PasswordHash::new(&encoded_copy);
 
-        if Pbkdf2.verify_password(&payload.password.into_bytes(), &hashed.unwrap()).is_ok() {
+        if Pbkdf2
+            .verify_password(&payload.password.into_bytes(), &hashed.unwrap())
+            .is_ok()
+        {
             if let Ok(token) = encode(
                 &Header::default(),
                 &CompanyInfo {
                     id: company.id,
                     name: company.name,
-                    exp: 10000000000
+                    exp: 10000000000,
                 },
                 &EncodingKey::from_secret(JWT_KEY.as_ref()),
             ) {
@@ -47,7 +50,53 @@ pub async fn handle(
                 ));
             }
         }
-        
     }
     Ok(with_status(json(&"Unauthorised"), StatusCode::UNAUTHORIZED))
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ResetPayload {
+    email: String,
+    password: String,
+    token: String,
+}
+
+pub async fn reset_request(
+    payload: ResetPayload,
+    pool: PgPool,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    let _ = data::request_password_reset(&pool, &payload.email).await;
+    Ok(with_status(json(&"Success"), StatusCode::OK))
+}
+
+pub async fn update_new_password(
+    payload: ResetPayload,
+    pool: PgPool,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    if payload.password.len() > 10 {
+        return Ok(with_status(
+            json(&"Password can not be less then 10 characters"),
+            StatusCode::BAD_REQUEST,
+        ));
+    }
+
+    if let Ok(is_valid_token) =
+        data::is_valid_reset_token(&pool, &payload.token, &payload.email).await
+    {
+        if is_valid_token {
+            let salt = SaltString::generate(&mut rand_core::OsRng);
+            if let Ok(hash) = Pbkdf2.hash_password(payload.password.as_bytes(), &salt) {
+                if let Some(hashed) = hash.hash {
+                    let encoded = format!("{}", hashed);
+                    let _ = data::set_new_password(&pool, &payload.token, &encoded).await;
+                    return Ok(with_status(json(&"Success"), StatusCode::OK));
+                }
+            }
+        }
+    }
+
+    Ok(with_status(
+        json(&"Expire or invalid token"),
+        StatusCode::BAD_REQUEST,
+    ))
 }

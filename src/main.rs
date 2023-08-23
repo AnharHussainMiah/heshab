@@ -14,10 +14,10 @@ use std::process;
 use uuid::Uuid;
 use warp::http::StatusCode;
 use warp::reject::Reject;
+use warp::reply::{json, with_status};
 use warp::Filter;
 use warp::Rejection;
 use warp::Reply;
-use warp::reply::{ json, with_status };
 
 const VERSION: &str = "0.1.0";
 
@@ -53,6 +53,8 @@ async fn main() {
         let p6 = pool.clone();
         let p7 = pool.clone();
         let p8 = pool.clone();
+        let p9 = pool.clone();
+        let p10 = pool.clone();
 
         let post_auth = warp::post()
             .and(warp::path!("api" / "auth"))
@@ -70,15 +72,20 @@ async fn main() {
             .and(warp::any().map(move || p2.clone()))
             .and_then(customer::search_customers_by_name);
 
-
         let post_get_customer_detail = warp::post()
-            .and(warp::path!("api" / "get-customer-detail" / i32).map(|customer_id: i32| customer_id))
+            .and(
+                warp::path!("api" / "get-customer-detail" / i32)
+                    .map(|customer_id: i32| customer_id),
+            )
             .and(auth)
             .and(warp::any().map(move || p3.clone()))
             .and_then(customer::get_customer_detail);
-        
+
         let post_get_customer_transactions = warp::post()
-            .and(warp::path!("api" / "get-customer-transactions" / i32).map(|customer_id: i32| customer_id))
+            .and(
+                warp::path!("api" / "get-customer-transactions" / i32)
+                    .map(|customer_id: i32| customer_id),
+            )
             .and(auth)
             .and(warp::any().map(move || p4.clone()))
             .and_then(customer::get_customer_transactions);
@@ -89,9 +96,12 @@ async fn main() {
             .and(self::extract_json_of::<customer::TransactionPayload>())
             .and(warp::any().map(move || p5.clone()))
             .and_then(customer::add_customer_transaction);
-        
+
         let post_delete_transaction = warp::post()
-            .and(warp::path!("api" / "delete-customer-transaction" / i32).map(|transaction_id: i32| transaction_id))
+            .and(
+                warp::path!("api" / "delete-customer-transaction" / i32)
+                    .map(|transaction_id: i32| transaction_id),
+            )
             .and(auth)
             .and(warp::any().map(move || p6.clone()))
             .and_then(customer::delete_customer_transaction);
@@ -102,18 +112,30 @@ async fn main() {
             .and(self::extract_json_of::<customer::CustomerPayload>())
             .and(warp::any().map(move || p7.clone()))
             .and_then(customer::add_new_customer);
-        
+
         let post_update_customer = warp::post()
             .and(warp::path!("api" / "update-customer"))
             .and(auth)
             .and(self::extract_json_of::<customer::CustomerPayload>())
             .and(warp::any().map(move || p8.clone()))
             .and_then(customer::update_new_customer);
-        
+
         let post_confirm_is_logged_in = warp::post()
             .and(warp::path!("api" / "confirm-is-logged-in"))
             .and(auth)
             .and_then(self::confirm_logged_in);
+
+        let post_reset_request = warp::post()
+            .and(warp::path!("api" / "reset-request"))
+            .and(self::extract_json_of::<authenticate::ResetPayload>())
+            .and(warp::any().map(move || p9.clone()))
+            .and_then(authenticate::reset_request);
+        
+        let post_update_new_password = warp::post()
+            .and(warp::path!("api" / "update-new-password"))
+            .and(self::extract_json_of::<authenticate::ResetPayload>())
+            .and(warp::any().map(move || p10.clone()))
+            .and_then(authenticate::update_new_password);
 
         let routes = public
             .or(post_auth)
@@ -125,6 +147,8 @@ async fn main() {
             .or(post_add_new_customer)
             .or(post_update_customer)
             .or(post_confirm_is_logged_in)
+            .or(post_reset_request)
+            .or(post_update_new_password)
             .recover(self::handle_rejection);
 
         println!("==> serving application on port 0.0.0.0:8080 use CTL+C to stop..");
@@ -181,11 +205,6 @@ pub fn extract_json_of<T: DeserializeOwned + Send>(
     warp::body::content_length_limit(1024 * 16).and(warp::body::json())
 }
 
-pub async fn confirm_logged_in(
-    company: CompanyInfo,
-) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(with_status(
-        json(&"success"),
-        StatusCode::OK,
-    ))
+pub async fn confirm_logged_in(company: CompanyInfo) -> Result<impl warp::Reply, warp::Rejection> {
+    Ok(with_status(json(&"success"), StatusCode::OK))
 }

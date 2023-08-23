@@ -2,7 +2,9 @@ create table if not exists company (
     id serial primary key,
     name text,
     email text,
-    password text
+    password text,
+    reset_token text,
+    reset_added timestamp
 );
 
 create table if not exists customer (
