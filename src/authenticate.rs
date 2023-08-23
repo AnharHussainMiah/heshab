@@ -1,7 +1,7 @@
 use crate::data;
 use crate::CompanyInfo;
 use crate::JWT_KEY;
-use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
+use jsonwebtoken::{encode, EncodingKey, Header};
 use pbkdf2::{
     password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Pbkdf2,
@@ -73,7 +73,6 @@ pub async fn update_new_password(
     payload: ResetPayload,
     pool: PgPool,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    
     if payload.token.len() != 36 {
         return Ok(with_status(
             json(&"Token is invalid"),
@@ -81,7 +80,7 @@ pub async fn update_new_password(
         ));
     }
 
-    if payload.email == "" {
+    if payload.email.is_empty() {
         return Ok(with_status(
             json(&"Email can not be empty"),
             StatusCode::BAD_REQUEST,

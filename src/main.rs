@@ -4,12 +4,13 @@ mod data;
 mod logo;
 mod models;
 
-use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
+use jsonwebtoken::{decode, DecodingKey, Validation};
 use lazy_static::lazy_static;
 use models::CompanyInfo;
 use serde::de::DeserializeOwned;
 use sqlx::PgPool;
 use std::env;
+use std::fs;
 use std::process;
 use uuid::Uuid;
 use warp::http::StatusCode;
@@ -28,7 +29,7 @@ lazy_static! {
 
 #[tokio::main]
 async fn main() {
-    logo::draw(&VERSION);
+    logo::draw(VERSION);
 
     //let pass = "password".to_string();
     // if let Ok(hash) = hash(pass.into_bytes(), DEFAULT_COST) {
@@ -44,6 +45,48 @@ async fn main() {
         let _ = sqlx::migrate!().run(&pool).await;
 
         let public = warp::get().and(warp::fs::dir("public"));
+
+        let spa_root = warp::path::end().and(warp::any()).map(|| {
+            match fs::read_to_string("public/index.html") {
+                Ok(body) => warp::http::Response::builder()
+                    .header("content-type", "text/html; charset=utf-8".to_string())
+                    .status(200)
+                    .body(body),
+                Err(_) => warp::http::Response::builder()
+                    .header("content-type", "text/html; charset=utf-8".to_string())
+                    .status(404)
+                    .body("not found".to_string()),
+            }
+        });
+
+        // let spa_root_sub = warp::path::end().map(|q: i32|
+        //     match fs::read_to_string("public/index.html") {
+        //         Ok(body) => {
+        //             warp::http::Response::builder()
+        //                 .header("content-type", "text/html; charset=utf-8".to_string())
+        //                 .status(200)
+        //                 .body(body.to_string())
+        //         },
+        //         Err(_) => {
+        //             warp::http::Response::builder()
+        //                 .header("content-type", "text/html; charset=utf-8".to_string())
+        //                 .status(404)
+        //                 .body("not found".to_string())
+        //         }
+        //     }
+        // );
+
+        let get_spa_search = warp::get().and(warp::path("search")).and(spa_root);
+        let get_spa_transactions = warp::get().and(warp::path("transactions")).and(spa_root);
+        let get_spa_transactions_sub = warp::get()
+            .and(warp::path!("transactions" / i32).map(|x: i32| x))
+            .and_then(self::index);
+        let get_spa_customer = warp::get().and(warp::path("customer")).and(spa_root);
+        let get_spa_customer_sub = warp::get()
+            .and(warp::path!("customer" / i32).map(|x: i32| x))
+            .and_then(self::index);
+        let get_spa_forgot_password = warp::get().and(warp::path("forgot-password")).and(spa_root);
+        let get_spa_new_password = warp::get().and(warp::path("new-password")).and(spa_root);
 
         let p1 = pool.clone();
         let p2 = pool.clone();
@@ -130,7 +173,7 @@ async fn main() {
             .and(self::extract_json_of::<authenticate::ResetPayload>())
             .and(warp::any().map(move || p9.clone()))
             .and_then(authenticate::reset_request);
-        
+
         let post_update_new_password = warp::post()
             .and(warp::path!("api" / "update-new-password"))
             .and(self::extract_json_of::<authenticate::ResetPayload>())
@@ -138,6 +181,13 @@ async fn main() {
             .and_then(authenticate::update_new_password);
 
         let routes = public
+            .or(get_spa_search)
+            .or(get_spa_transactions)
+            .or(get_spa_transactions_sub)
+            .or(get_spa_customer)
+            .or(get_spa_customer_sub)
+            .or(get_spa_forgot_password)
+            .or(get_spa_new_password)
             .or(post_auth)
             .or(post_search_customers)
             .or(post_get_customer_detail)
@@ -194,10 +244,10 @@ async fn handle_rejection(err: Rejection) -> Result<impl Reply, std::convert::In
 }
 
 fn load_key(k: &str) -> String {
-    return match env::var(k) {
+    match env::var(k) {
         Ok(v) => v,
         Err(_) => Uuid::new_v4().to_string(),
-    };
+    }
 }
 
 pub fn extract_json_of<T: DeserializeOwned + Send>(
@@ -207,4 +257,18 @@ pub fn extract_json_of<T: DeserializeOwned + Send>(
 
 pub async fn confirm_logged_in(company: CompanyInfo) -> Result<impl warp::Reply, warp::Rejection> {
     Ok(with_status(json(&"success"), StatusCode::OK))
+}
+
+pub async fn index(_x: i32) -> Result<impl warp::Reply, warp::Rejection> {
+    let f = match fs::read_to_string("public/index.html") {
+        Ok(body) => warp::http::Response::builder()
+            .header("content-type", "text/html; charset=utf-8".to_string())
+            .status(200)
+            .body(body),
+        Err(_) => warp::http::Response::builder()
+            .header("content-type", "text/html; charset=utf-8".to_string())
+            .status(404)
+            .body("not found".to_string()),
+    };
+    Ok(f)
 }

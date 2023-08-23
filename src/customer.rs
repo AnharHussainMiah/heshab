@@ -163,11 +163,11 @@ fn validate_cusomter_error(customer: &CustomerPayload) -> Option<String> {
         address is max 200 characters
     */
 
-    if customer.name == "" {
+    if customer.name.is_empty() {
         return Some("Sorry the customer's name can not be empty".to_string());
     }
 
-    if customer.phone == "" {
+    if customer.phone.is_empty() {
         return Some("Sorry the customer's phone can not be empty".to_string());
     }
 
