@@ -27,7 +27,7 @@
                         <tbody>
                             <tr v-for="customer in customers" key="customer.id">
                                 <td>{{ customer.name }} ({{ customer.phone  }})</td>
-                                <td><a :href="`/transactions/${customer.id}`"><span class="bi-cash-coin" /> Transactions</a> </td>
+                                <td><router-link :to="{ path: `/transactions/${customer.id}`}"><span class="bi-cash-coin" /> Transactions</router-link> </td>
                             </tr>
                         </tbody>
                     </table>

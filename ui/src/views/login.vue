@@ -22,7 +22,7 @@
                         </div>
                         <div class="col-12">
                             <small class="text-muted">
-                                <span class="bi-question-circle" /> help I forgot my password! reset it <a href="/forgot-password">here</a>
+                                <span class="bi-question-circle" /> help I forgot my password! reset it <router-link  :to="{ path: '/forgot-password'}">here</router-link>
                             </small>
                             <button class="btn btn-dark float-end" @click="btnSubmit">
                                 <span v-if="!isLoading"><i class="bi-lock-fill"></i> &nbsp; login</span>

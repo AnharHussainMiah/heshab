@@ -36,7 +36,7 @@
                         <h1><span class="bi-check2-circle" /> Updated!</h1>
                         <p class="text-muted">
                             Your new password has now been set, you should now be able to login using your new password.
-                            To login now click <a href="/">here</a>
+                            To login now click <router-link :to="{ path: '/'}">here</router-link>
                         </p>
                     </div>
                 </div>

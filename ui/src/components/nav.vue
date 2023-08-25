@@ -1,13 +1,13 @@
 <template>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="/search">&nbsp;<span class="bi-search" /> Search</a>
+        <router-link class="navbar-brand" :to="{ path: '/search'}">&nbsp;<span class="bi-search" /> Search</router-link>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
                 <li class="nav-item active">
-                    <a class="nav-link" href="/customer/-1"><span class="bi-person-fill-add" /> New Customer</a>
+                    <router-link class="nav-link" :to="{ path: '/customer/-1'}"><span class="bi-person-fill-add" /> New Customer</router-link>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link active" href="#" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><span class="bi-unlock" /> Log out</a>

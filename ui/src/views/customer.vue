@@ -4,7 +4,7 @@
         <div class="row">
             <div class="col-md-6 offset-md-3">
                 <div class="row g-4 mt-2">
-                    <a v-if="customerId > 0" :href="`/transactions/${customerId}`"><span class="bi-arrow-left" /> back to transaction</a>
+                    <router-link v-if="customerId > 0" :to="{ path: `/transactions/${customerId}`}"><span class="bi-arrow-left" /> back to transaction</router-link>
                     <h1>Customer</h1>
                 </div>
                 <div class="input-group mb-2">
@@ -25,7 +25,7 @@
                     </div>
                     <input class="form-control" placeholder="enter address" type="text" v-model="customer.address" maxlength="100" />
                 </div>
-                <div class="row g-4 mt-1">
+                <div v-if="successMessage===''" class="row g-4 mt-1">
                     <div class="col-12">
                         <button class="btn btn-dark float-end" @click="btnSave"><span class="bi-save-fill" /> Save</button>
                     </div>
@@ -34,6 +34,13 @@
                     <div class="col-12">
                         <div class="alert alert-warning" role="alert" v-if="errorMessage !== ''">
                             <span class="bi-exclamation-diamond" /> {{ errorMessage }}
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-4 mt-1">
+                    <div class="col-12">
+                        <div class="alert alert-success" role="alert" v-if="successMessage !== ''">
+                            <span class="bi-check2-circle" /> {{ successMessage }}
                         </div>
                     </div>
                 </div>
@@ -54,7 +61,8 @@ export default {
             phone: "",
             address: ""
         },
-        errorMessage: ""
+        errorMessage: "",
+        successMessage: ""
     }),
     mounted () {
         document.title = 'Baqi | Customer'
@@ -75,6 +83,8 @@ export default {
                 });
         },
         btnSave () {
+            this.successMessage = ""
+            this.errorMessage = "";
             if(this.customerId > 0) {
                 this.saveCustomer();
             } else {
@@ -82,7 +92,6 @@ export default {
             }
         },
         saveCustomer () {
-            this.errorMessage = "";
             const payload = {
                 customer_id: this.customerId,
                 name: this.customer.name,
@@ -91,7 +100,7 @@ export default {
             };
             Api.updateCustomer(payload)
                 .then((data) => {
-                    alert("Customer Details saved!");
+                    this.successMessage = "Customer details have been updated!";
                 })
                 .catch(({ response }) => {
                     if(response.status === 400) {
@@ -103,7 +112,6 @@ export default {
                 })
         },
         createNewCustomer () {
-            this.errorMessage = "";
             const payload = {
                 customer_id: this.customerId,
                 name: this.customer.name,
@@ -112,7 +120,7 @@ export default {
             };
             Api.addNewCustomer(payload)
                 .then((data) => {
-                    alert("Customer Details saved!");
+                    this.successMessage = "New customer has been created!";
                 })
                 .catch(({ response }) => {
                     if(response.status === 400) {

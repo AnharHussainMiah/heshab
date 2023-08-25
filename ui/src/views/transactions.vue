@@ -16,7 +16,7 @@
                         <span class="bi-phone" />{{ customer.phone  }}<br/>
                         <span class="bi-map"/> {{ customer.address }}
                         </p>
-                        <a :href="`/customer/${customerId}`" class="btn btn-dark"><span class="bi-pencil" /> Edit Customer</a>
+                        <router-link :to="{ path: `/customer/${customerId}`}" class="btn btn-dark"><span class="bi-pencil" /> Edit Customer</router-link>
                     </div>
                 </div>
                 <div class="row g-4 mt-2 mb-4">
